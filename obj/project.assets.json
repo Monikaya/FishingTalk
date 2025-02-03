@@ -1974,9 +1974,9 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/amber/Documents/webfish/Cove-AutoMod/CovePlugin.csproj",
-      "projectName": "CovePlugin",
-      "projectPath": "/home/amber/Documents/webfish/Cove-AutoMod/CovePlugin.csproj",
+      "projectUniqueName": "/home/amber/Documents/webfish/Cove-AutoMod/CoveAutoMod.csproj",
+      "projectName": "CoveAutoMod",
+      "projectPath": "/home/amber/Documents/webfish/Cove-AutoMod/CoveAutoMod.csproj",
       "packagesPath": "/home/amber/.nuget/packages/",
       "outputPath": "/home/amber/Documents/webfish/Cove-AutoMod/obj/",
       "projectStyle": "PackageReference",
@@ -2028,10 +2028,6 @@
         "downloadDependencies": [
           {
             "name": "Microsoft.AspNetCore.App.Ref",
-            "version": "[8.0.12, 8.0.12]"
-          },
-          {
-            "name": "Microsoft.NETCore.App.Ref",
             "version": "[8.0.12, 8.0.12]"
           }
         ],

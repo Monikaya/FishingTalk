@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "5oE+w0boJL8=",
+  "dgSpecHash": "MpLeohr4h5c=",
   "success": true,
-  "projectFilePath": "/home/amber/Documents/webfish/Cove-AutoMod/CovePlugin.csproj",
+  "projectFilePath": "/home/amber/Documents/webfish/Cove-AutoMod/CoveAutoMod.csproj",
   "expectedPackageFiles": [
     "/home/amber/.nuget/packages/microsoft.extensions.configuration/9.0.0/microsoft.extensions.configuration.9.0.0.nupkg.sha512",
     "/home/amber/.nuget/packages/microsoft.extensions.configuration.abstractions/9.0.0/microsoft.extensions.configuration.abstractions.9.0.0.nupkg.sha512",
@@ -41,7 +41,6 @@
     "/home/amber/.nuget/packages/system.io.pipelines/9.0.0/system.io.pipelines.9.0.0.nupkg.sha512",
     "/home/amber/.nuget/packages/system.text.encodings.web/9.0.0/system.text.encodings.web.9.0.0.nupkg.sha512",
     "/home/amber/.nuget/packages/system.text.json/9.0.0/system.text.json.9.0.0.nupkg.sha512",
-    "/home/amber/.nuget/packages/microsoft.netcore.app.ref/8.0.12/microsoft.netcore.app.ref.8.0.12.nupkg.sha512",
     "/home/amber/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.12/microsoft.aspnetcore.app.ref.8.0.12.nupkg.sha512"
   ],
   "logs": []
