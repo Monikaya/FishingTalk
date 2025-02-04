@@ -5,7 +5,8 @@ using Discord;
 using Discord.WebSocket;
 using System.Net; //For webclient
 using System.Collections.Specialized;
-using System.Text.Json; //For NameValueCollection
+using System.Text.Json;
+using Discord.Commands; //For NameValueCollection
 
 // Change the namespace and class name!
 namespace CoveAutoMod
@@ -55,8 +56,6 @@ namespace CoveAutoMod
         private DiscordSocketClient _client;
         private CoveAutoMod _plugin;
 
-        public string guild;
-
         public DiscordBot(CoveAutoMod plugin)
         {
             _plugin = plugin;
@@ -73,13 +72,11 @@ namespace CoveAutoMod
             _client.Log += Log; // For logging events (optional but recommended)
 
             // Replace with your bot's token!
-            string token = "MTMzNjA5NTkyODE4Mzk0NzQwNg.GtVn0T.43Li60bfOI-SbkwtgnKWng9TxPE64ZnXlUlOF4";
+            string token = "MTMzNjA5NTkyODE4Mzk0NzQwNg.GLMtYZ.Ms_eQVJoBtweHhByR-a1A47x7DCJGqY-OIStIY";
 
             await _client.LoginAsync(TokenType.Bot, token);
             await _client.StartAsync();
-
-            guild = _client.GetGuild();
-
+            
             _client.MessageReceived += HandleMessage; // Event handler for incoming messages
 
             // Keep the program running (important!)
@@ -100,9 +97,17 @@ namespace CoveAutoMod
             // Only see msgs in chat-stream channel
             if (message.Channel.Id != 1336079216038645780) return;
 
-            // TODO: get guild somehow via _client.GetGuild() then use guild.GetUserAsync and use .Nickname to get their fun thing
+            SocketCommandContext context = new SocketCommandContext(_client, message as SocketUserMessage);
 
-            _plugin.SendWebfishMessage(message.Author.GlobalName, message.Content);
+            SocketGuild guild = context.Guild;
+            var author = guild.GetUser(message.Author.Id);
+            string authorUsername = author?.Nickname ?? author.GlobalName;
+
+            // TODO: get guild somehow via _client.GetGuild() then use guild.GetUserAsync and use .Nickname to get their fun thing
+            // Make it get token from token.txt via some method
+            // also regenerate webhook url and do the same (it's compromised)
+
+            _plugin.SendWebfishMessage(authorUsername, message.Content);
         }
     
     }
