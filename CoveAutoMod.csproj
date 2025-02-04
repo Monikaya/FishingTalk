@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
     <BuildProjectReferences>false</BuildProjectReferences>
     <OutputType>Library</OutputType>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +16,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\WebFishingCove\Cove\Cove.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Discord.Net" Version="3.17.1" />
+    <PackageReference Include="Discord.Net.Commands" Version="3.17.1" />
+    <PackageReference Include="Discord.Net.WebSocket" Version="3.17.1" />
   </ItemGroup>
 
 </Project>
