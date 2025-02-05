@@ -109,11 +109,13 @@ namespace FishingTalk
 
         public static void sendDiscordWebhook(string URL, string profilepic, string username, string message)
         {
-                NameValueCollection discordValues = new NameValueCollection();
-                discordValues.Add("username", username);
-                discordValues.Add("avatar_url", profilepic);
-                discordValues.Add("content", message);
-                new WebClient().UploadValues(URL, discordValues);
+            if(message.Equals("@everyone")) message = "ateveryone";
+            if (message.Equals("@here")) message = "athere";
+            NameValueCollection discordValues = new NameValueCollection();
+            discordValues.Add("username", username);
+            discordValues.Add("avatar_url", profilepic);
+            discordValues.Add("content", message);
+            new WebClient().UploadValues(URL, discordValues);
         }
 
         public void SendWebfishMessage(string username, string message)
