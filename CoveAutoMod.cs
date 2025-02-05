@@ -9,15 +9,50 @@ using System.Collections.Specialized;
 using System;
 using System.IO;
 using Newtonsoft.Json;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 // Change the namespace and class name!
 namespace FishingTalk
 {
+    public class TalkConfig
+    {
+        [JsonProperty("token")]
+        public required string Token { get; set; }
+        [JsonProperty("webhookurl")]
+        public required string WebhookURL { get; set; }
+        public required string WebhookChannelId { get; set; }
+        public required string WebhookUserId { get; set; }
+        public string IconURL { get; set; }
+    }
+
+    public class WebhookRequest
+    {
+        [JsonProperty("application_id")]
+        public string ApplicationId { get; set; }
+        [JsonProperty("avatar")]
+        public string Avatar { get; set; }
+        [JsonProperty("channel_id")]
+        public string ChannelId { get; set; }
+        [JsonProperty("guild_id")]
+        public string GuildId { get; set; }
+        [JsonProperty("id")]
+        public string WebhookId { get; set; }
+        [JsonProperty("name")]
+        public string Name { get; set; }
+        [JsonProperty("type")]
+        public int type { get; set; }
+        [JsonProperty("token")]
+        public string token { get; set; }
+        [JsonProperty("url")]
+        public string Url { get; set; }
+    }
+
     public class FishingTalk : CovePlugin
     {
-        private string webhook = Environment.GetEnvironmentVariable("COVEWEBHOOKURL").ToString();
+        private TalkConfig talkConfig;
 
-        public string icon = "https://i.imgur.com/5pQ9KKr.png";
         private DiscordBot _discordBot;
 
         public FishingTalk(CoveServer server) : base(server)
@@ -25,19 +60,32 @@ namespace FishingTalk
             _discordBot = new DiscordBot(this);
         }
 
-        public override void onInit()
+        public override async void onInit()
         {
             base.onInit();
 
-            _ = _discordBot.MainAsync();
+            string json = File.ReadAllText("fishingtalk.json");
+            talkConfig = JsonConvert.DeserializeObject<TalkConfig>(json);
 
-            Log("Hello world!");
+            WebhookRequest webhookJson = await WebGET(talkConfig.WebhookURL);
+
+            if(talkConfig.IconURL == null)
+            {
+                talkConfig.IconURL = "https://i.imgur.com/5pQ9KKr.png";
+            }
+
+            talkConfig.WebhookChannelId = webhookJson.ChannelId;
+            talkConfig.WebhookUserId = webhookJson.WebhookId;
+
+            _ = _discordBot.MainAsync(talkConfig);
+
+            Log("Initializing FishingTalk!");
         }
 
         public override void onChatMessage(WFPlayer sender, string message)
         {
             base.onChatMessage(sender, message);
-            sendDiscordWebhook(webhook, icon, sender.Username, message);
+            sendDiscordWebhook(talkConfig.WebhookURL, talkConfig.IconURL, sender.Username, message);
         }
 
         public static void sendDiscordWebhook(string URL, string profilepic, string username, string message)
@@ -49,15 +97,24 @@ namespace FishingTalk
                 new WebClient().UploadValues(URL, discordValues);
         }
 
-        public void SendWebfishMessage(string username, string message) {
+        public void SendWebfishMessage(string username, string message)
+        {
             Console.WriteLine(username + ": " + message);
             SendGlobalChatMessage(username + ": " + message);
+        }
+        static async Task<WebhookRequest> WebGET(string url)
+        {
+            using HttpClient client = new HttpClient();
+            string request = await client.GetStringAsync(url);
+            WebhookRequest json = JsonConvert.DeserializeObject<WebhookRequest>(request);
+            return json;
         }
     }
     public class DiscordBot
     {
         private DiscordSocketClient _client;
         private FishingTalk _plugin;
+        private TalkConfig talkConfig;
 
         public DiscordBot(FishingTalk plugin)
         {
@@ -65,7 +122,7 @@ namespace FishingTalk
         }
 
 
-        public async Task MainAsync()
+        public async Task MainAsync(TalkConfig importConfig)
         {
             var config = new DiscordSocketConfig {
                 GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildMessages | GatewayIntents.MessageContent, // Add MessageContent here
@@ -75,9 +132,9 @@ namespace FishingTalk
 
             _client.Log += Log; // For logging events (optional but recommended)
 
-            string token = Environment.GetEnvironmentVariable("COVETOKEN").ToString();
+            talkConfig = importConfig;
 
-            await _client.LoginAsync(TokenType.Bot, token);
+            await _client.LoginAsync(TokenType.Bot, talkConfig.Token);
             await _client.StartAsync();
             
             _client.MessageReceived += HandleMessage; // Event handler for incoming messages
@@ -95,10 +152,10 @@ namespace FishingTalk
         private async Task HandleMessage(SocketMessage message)
         {
             // Ignore messages from the bot itself
-            if (message.Author.Id == _client.CurrentUser.Id || message.Author.Id == 1336488747692457984) return;
+            if (message.Author.Id == _client.CurrentUser.Id || message.Author.Id.ToString().Equals(talkConfig.WebhookUserId)) return;
 
             // Only see msgs in chat-stream channel
-            if (message.Channel.Id != 1336079216038645780) return;
+            if (!message.Channel.Id.ToString().Equals(talkConfig.WebhookChannelId)) return;
 
             SocketCommandContext context = new SocketCommandContext(_client, message as SocketUserMessage);
 
