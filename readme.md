@@ -6,9 +6,6 @@ FishingTalk is a Discord-to-Webfishing integration plugin that enables seamless 
 - 💬 **Two-Way Chat Integration** – Talk between Discord and the game effortlessly.
 - 🔄 **Real-time Sync** – Messages sent in-game appear in Discord and vice versa.
 
-## Future Features
-- ♻️ **Join and Leave Notifications** - Be notified when someone joins and leaves the server.
-
 ## Contributing
 We welcome contributions! Feel free to open issues or submit pull requests.
 

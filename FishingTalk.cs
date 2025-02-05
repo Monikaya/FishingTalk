@@ -1,5 +1,6 @@
 ﻿using Cove.Server.Plugins;
 using Cove.Server.Actor;
+using Cove.Server.Utils;
 using Cove.Server;
 using Discord;
 using Discord.WebSocket;
@@ -84,6 +85,26 @@ namespace FishingTalk
         {
             base.onChatMessage(sender, message);
             sendDiscordWebhook(talkConfig.WebhookURL, talkConfig.IconURL, sender.Username, message);
+        }
+
+        public override void onPlayerJoin(WFPlayer player)
+        {
+            base.onPlayerJoin(player);
+            Dictionary<string, string> config = ConfigReader.ReadConfig("server.cfg");
+            var allPlayers = GetAllPlayers();
+            int maxPlayers = int.Parse(config["maxPlayers"]);
+            string message = player.Username + " joined. [" + allPlayers.Length + "/" + maxPlayers + "]";
+            sendDiscordWebhook(talkConfig.WebhookURL, talkConfig.IconURL, "Server", message);
+        }
+
+        public override void onPlayerLeave(WFPlayer player)
+        {
+            base.onPlayerJoin(player);
+            Dictionary<string, string> config = ConfigReader.ReadConfig("server.cfg");
+            var allPlayers = GetAllPlayers();
+            int maxPlayers = int.Parse(config["maxPlayers"]);
+            string message = player.Username + " left. [" + allPlayers.Length + "/" + maxPlayers + "]";
+            sendDiscordWebhook(talkConfig.WebhookURL, talkConfig.IconURL, "Server", message);
         }
 
         public static void sendDiscordWebhook(string URL, string profilepic, string username, string message)
