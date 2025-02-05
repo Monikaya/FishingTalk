@@ -1,23 +1,26 @@
-﻿﻿using Cove.Server.Plugins;
+﻿using Cove.Server.Plugins;
 using Cove.Server.Actor;
 using Cove.Server;
 using Discord;
 using Discord.WebSocket;
+using Discord.Commands;
 using System.Net; //For webclient
 using System.Collections.Specialized;
-using Discord.Commands;
+using System;
+using System.IO;
+using Newtonsoft.Json;
 
 // Change the namespace and class name!
-namespace CoveAutoMod
+namespace FishingTalk
 {
-    public class CoveAutoMod : CovePlugin
+    public class FishingTalk : CovePlugin
     {
         private string webhook = Environment.GetEnvironmentVariable("COVEWEBHOOKURL").ToString();
 
         public string icon = "https://i.imgur.com/5pQ9KKr.png";
         private DiscordBot _discordBot;
 
-        public CoveAutoMod(CoveServer server) : base(server)
+        public FishingTalk(CoveServer server) : base(server)
         { 
             _discordBot = new DiscordBot(this);
         }
@@ -54,9 +57,9 @@ namespace CoveAutoMod
     public class DiscordBot
     {
         private DiscordSocketClient _client;
-        private CoveAutoMod _plugin;
+        private FishingTalk _plugin;
 
-        public DiscordBot(CoveAutoMod plugin)
+        public DiscordBot(FishingTalk plugin)
         {
             _plugin = plugin;
         }
@@ -92,7 +95,7 @@ namespace CoveAutoMod
         private async Task HandleMessage(SocketMessage message)
         {
             // Ignore messages from the bot itself
-            if (message.Author.Id == _client.CurrentUser.Id || message.Author.Id == 1336079280718741504) return;
+            if (message.Author.Id == _client.CurrentUser.Id || message.Author.Id == 1336488747692457984) return;
 
             // Only see msgs in chat-stream channel
             if (message.Channel.Id != 1336079216038645780) return;
