@@ -6,12 +6,7 @@ using Discord.WebSocket;
 using Discord.Commands;
 using System.Net; //For webclient
 using System.Collections.Specialized;
-using System;
-using System.IO;
 using Newtonsoft.Json;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.Text.Json.Serialization;
 
 // Change the namespace and class name!
 namespace FishingTalk
@@ -64,6 +59,8 @@ namespace FishingTalk
         {
             base.onInit();
 
+            Log("Initializing FishingTalk!");
+
             string json = File.ReadAllText("fishingtalk.json");
             talkConfig = JsonConvert.DeserializeObject<TalkConfig>(json);
 
@@ -79,7 +76,8 @@ namespace FishingTalk
 
             _ = _discordBot.MainAsync(talkConfig);
 
-            Log("Initializing FishingTalk!");
+            Log("FishingTalk working!");
+
         }
 
         public override void onChatMessage(WFPlayer sender, string message)
