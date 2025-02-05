@@ -5,15 +5,15 @@ using Discord;
 using Discord.WebSocket;
 using System.Net; //For webclient
 using System.Collections.Specialized;
-using System.Text.Json;
-using Discord.Commands; //For NameValueCollection
+using Discord.Commands;
 
 // Change the namespace and class name!
 namespace CoveAutoMod
 {
     public class CoveAutoMod : CovePlugin
     {
-        private string webhook = "https://discord.com/api/webhooks/1336079280718741504/_siYI332sbBt1FcAAxUUZX6aS_wnImrcp3Gkfw6rFXk2gjvOFUXLw7pNvteFIZdPYRaX";
+        private string webhook = Environment.GetEnvironmentVariable("COVEWEBHOOKURL").ToString();
+
         public string icon = "https://i.imgur.com/5pQ9KKr.png";
         private DiscordBot _discordBot;
 
@@ -61,6 +61,7 @@ namespace CoveAutoMod
             _plugin = plugin;
         }
 
+
         public async Task MainAsync()
         {
             var config = new DiscordSocketConfig {
@@ -71,8 +72,7 @@ namespace CoveAutoMod
 
             _client.Log += Log; // For logging events (optional but recommended)
 
-            // Replace with your bot's token!
-            string token = "MTMzNjA5NTkyODE4Mzk0NzQwNg.GLMtYZ.Ms_eQVJoBtweHhByR-a1A47x7DCJGqY-OIStIY";
+            string token = Environment.GetEnvironmentVariable("COVETOKEN").ToString();
 
             await _client.LoginAsync(TokenType.Bot, token);
             await _client.StartAsync();
@@ -103,7 +103,6 @@ namespace CoveAutoMod
             var author = guild.GetUser(message.Author.Id);
             string authorUsername = author?.Nickname ?? author.GlobalName;
 
-            // TODO: get guild somehow via _client.GetGuild() then use guild.GetUserAsync and use .Nickname to get their fun thing
             // Make it get token from token.txt via some method
             // also regenerate webhook url and do the same (it's compromised)
 
