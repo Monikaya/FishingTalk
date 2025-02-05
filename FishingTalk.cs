@@ -109,8 +109,9 @@ namespace FishingTalk
 
         public static void sendDiscordWebhook(string URL, string profilepic, string username, string message)
         {
-            if(message.Equals("@everyone")) message = "ateveryone";
-            if (message.Equals("@here")) message = "athere";
+            if(message.Contains("@everyone")) message = "I tried to ateveryone! This message was replaced.";
+            if(message.Contains("@here")) message = "I tried to athere! This message was replaced.";
+
             NameValueCollection discordValues = new NameValueCollection();
             discordValues.Add("username", username);
             discordValues.Add("avatar_url", profilepic);
