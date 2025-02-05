@@ -12,5 +12,13 @@ FishingTalk is a Discord-to-Webfishing integration plugin that enables seamless 
 ## Contributing
 We welcome contributions! Feel free to open issues or submit pull requests.
 
+## Instructions
+
+- Unzip fishingtalk.zip
+- Place all .dlls into cove's plugins/ directory
+- Place fishingtalk.json in cove's root directory
+- Fill in fishingtalk.json with a discord bot token and a webhook for your discord channel!
+- If all is done properly, everything should work. Contact us below if there are any issues.
+
 ## Support
 Need help? Join our [Discord Community](https://discord.gg/7PQUdNJVhD) or open an issue!
