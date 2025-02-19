@@ -8,6 +8,8 @@ using Discord.Commands;
 using System.Net; //For webclient
 using System.Collections.Specialized;
 using Newtonsoft.Json;
+using System.Linq.Expressions;
+using Discord.Interactions;
 
 // Change the namespace and class name!
 namespace FishingTalk
@@ -124,6 +126,7 @@ namespace FishingTalk
             Console.WriteLine(username + ": " + message);
             SendGlobalChatMessage(username + ": " + message);
         }
+        
         static async Task<WebhookRequest> WebGET(string url)
         {
             using HttpClient client = new HttpClient();
@@ -153,6 +156,8 @@ namespace FishingTalk
             _client = new DiscordSocketClient(config);
 
             _client.Log += Log; // For logging events (optional but recommended)
+            _client.Ready += Client_Ready;
+            _client.SlashCommandExecuted += SlashCommandHandler;
 
             talkConfig = importConfig;
 
@@ -171,6 +176,229 @@ namespace FishingTalk
             return Task.CompletedTask;
         }
 
+        public async Task Client_Ready()
+        {
+            var usersCommand = new SlashCommandBuilder()
+                .WithName("users")
+                .WithDescription("List the users currently playing.")
+                .AddOption("page", ApplicationCommandOptionType.Integer, "The page we look at", isRequired: false);
+
+            var kickCommand = new SlashCommandBuilder()
+                .WithName("kick")
+                .WithDescription("Kick a user from your Webfishing server.")
+                .AddOption("user", ApplicationCommandOptionType.String, "The user who will be kicked", isRequired: true);
+
+            var banCommand = new SlashCommandBuilder()
+                .WithName("ban")
+                .WithDescription("Ban a user from your Webfishing server.")
+                .AddOption("user", ApplicationCommandOptionType.String, "The user who will be banned", isRequired: true);
+
+            var banIDCommand = new SlashCommandBuilder()
+                .WithName("banid")
+                .WithDescription("Ban a user by their steam id")
+                .AddOption("user-id", ApplicationCommandOptionType.String, "The steam id to ban", isRequired: true);
+            
+            await _client.CreateGlobalApplicationCommandAsync(usersCommand.Build());
+            await _client.CreateGlobalApplicationCommandAsync(kickCommand.Build());
+            await _client.CreateGlobalApplicationCommandAsync(banCommand.Build());
+            await _client.CreateGlobalApplicationCommandAsync(banIDCommand.Build());
+        }
+
+        private async Task SlashCommandHandler(SocketSlashCommand command)
+        {
+            switch(command.Data.Name)
+            {
+                case "users":
+                    await ListUsers(command);
+                    break;
+                case "kick":
+                    await KickUser(command);
+                    break;
+                case "ban":
+                    await BanUser(command);
+                    break;
+                case "banid":
+                    await BanUserByID(command);
+                    break;
+            }
+        }
+
+        private async Task ListUsers(SocketSlashCommand command)
+        {
+            int argsPageNumber;
+            try
+            {
+                argsPageNumber = (int)command.Data.Options.First().Value;
+            }
+            catch
+            {
+                argsPageNumber = 1;
+            }
+            
+            // this chunk is stolen directly from Dr.Meepso's Cove.ChatCommands. I'm sorry!
+            
+            int pageNumber = 1;
+            int pageSize = 10;
+            // Check if a page number was provided
+            
+            if(argsPageNumber != 1) pageNumber = argsPageNumber; 
+
+            var allPlayers = _plugin.GetAllPlayers();
+            int totalPlayers = allPlayers.Length;
+            int totalPages = (int)Math.Ceiling((double)totalPlayers / pageSize);
+            // Ensure the page number is within the valid range
+            if (pageNumber > totalPages) pageNumber = totalPages;
+            // Get the players for the current page
+            var playersOnPage = allPlayers.Skip((pageNumber - 1) * pageSize).Take(pageSize);
+            // Build the message to send
+            string messageBody = "";
+            foreach (var iPlayer in playersOnPage)
+            {
+                messageBody += $"\n{iPlayer.Username}: {iPlayer.FisherID}";
+            }
+
+            var embed = new EmbedBuilder()
+                .WithTitle("Players Online")
+                .WithDescription(messageBody)
+                .WithColor(Color.DarkMagenta)
+                .WithFooter("Page " + pageNumber + "/" + totalPages);
+
+            await command.RespondAsync(embed: embed.Build());
+        }
+
+        [DefaultMemberPermissions(GuildPermission.KickMembers)]
+        private async Task KickUser(SocketSlashCommand command)
+        {
+            SocketGuildUser user = command.User as SocketGuildUser;
+            if(!user.GuildPermissions.KickMembers)
+            {
+                var embed = new EmbedBuilder()
+                    .WithTitle("Not Allowed")
+                    .WithColor(Color.Red)
+                    .WithDescription("You don't have the permissison to access this command");
+
+                await command.RespondAsync(embed: embed.Build());
+                return;
+            }
+
+            string playerIdent = (string)command.Data.Options.First().Value;
+
+            //stolen from meepso blatently
+
+            // try find a user with the username first
+            var AllPlayers = _plugin.GetAllPlayers();
+            WFPlayer kickedplayer = AllPlayers.ToList().Find(p => p.Username.Equals(playerIdent, StringComparison.OrdinalIgnoreCase));
+            // if there is no player with the username try find someone with that fisher ID
+            if (kickedplayer == null)
+                kickedplayer = AllPlayers.ToList().Find(p => p.FisherID.Equals(playerIdent, StringComparison.OrdinalIgnoreCase));
+            if (kickedplayer == null)
+            {
+                var embed = new EmbedBuilder()
+                    .WithTitle("Not Found")
+                    .WithColor(Color.Red)
+                    .WithDescription("The player wasn't found.");
+                await command.RespondAsync(embed: embed.Build());
+            }
+            else
+            {
+                _plugin.KickPlayer(kickedplayer);
+
+                var embed = new EmbedBuilder()
+                    .WithTitle("Player Kicked")
+                    .WithColor(Color.Green)
+                    .WithDescription("Sucessfully kicked " + kickedplayer.Username);
+                
+                await command.RespondAsync(embed: embed.Build());
+            }
+        }
+        
+        [DefaultMemberPermissions(GuildPermission.BanMembers)]
+        private async Task BanUser(SocketSlashCommand command)
+        {
+            SocketGuildUser user = command.User as SocketGuildUser;
+            if(!user.GuildPermissions.BanMembers)
+            {
+                var embed = new EmbedBuilder()
+                    .WithTitle("Not Allowed")
+                    .WithColor(Color.Red)
+                    .WithDescription("You don't have the permissison to access this command");
+
+                await command.RespondAsync(embed: embed.Build());
+                return;
+            }
+
+            string playerIdent = (string)command.Data.Options.First().Value;
+
+            // hacky fix, ALSO STOLE M FROM MEEPSO I SORRY
+            // Extract player name from the command message
+            // try find a user with the username first
+            var AllPlayers = _plugin.GetAllPlayers();
+            WFPlayer playerToBan = AllPlayers.ToList().Find(p => p.Username.Equals(playerIdent, StringComparison.OrdinalIgnoreCase));
+            // if there is no player with the username try find someone with that fisher ID
+            if (playerToBan == null)
+                playerToBan = AllPlayers.ToList().Find(p => p.FisherID.Equals(playerIdent, StringComparison.OrdinalIgnoreCase));
+            if (playerToBan == null)
+            {
+                var embed = new EmbedBuilder()
+                    .WithTitle("Not Found")
+                    .WithColor(Color.Red)
+                    .WithDescription("The player wasn't found.");
+                await command.RespondAsync(embed: embed.Build());
+            }
+            else
+            {
+                _plugin.BanPlayer(playerToBan);
+
+                var embed = new EmbedBuilder()
+                    .WithTitle("Player Banned")
+                    .WithColor(Color.Green)
+                    .WithDescription("Sucessfully banned " + playerToBan.Username);
+                
+                await command.RespondAsync(embed: embed.Build());
+            }
+        }
+
+        [DefaultMemberPermissions(GuildPermission.BanMembers)]
+        private async Task BanUserByID(SocketSlashCommand command)
+        {
+            SocketGuildUser user = command.User as SocketGuildUser;
+            if(!user.GuildPermissions.BanMembers)
+            {
+                var embedPP = new EmbedBuilder()
+                    .WithTitle("Not Allowed")
+                    .WithColor(Color.Red)
+                    .WithDescription("You don't have the permissison to access this command");
+
+                await command.RespondAsync(embed: embedPP.Build());
+                return;
+            }
+            long playerID;
+            try
+            {
+                playerID = long.Parse((string)command.Data.Options.First().Value);
+                //playerID = (long)command.Data.Options.First().Value;
+            }
+            catch
+            {
+                var embedPP = new EmbedBuilder()
+                    .WithTitle("Not a String")
+                    .WithColor(Color.Red)
+                    .WithDescription("The Steam id is probably not an integer");
+
+                await command.RespondAsync(embed: embedPP.Build());
+                return;   
+            }
+
+            File.AppendAllText("bans.txt", playerID + " #hello gaming" + Environment.NewLine);
+                
+            var embed = new EmbedBuilder()
+                .WithTitle("Player Banned")
+                .WithColor(Color.Green)
+                .WithDescription("Sucessfully banned " + playerID);
+            
+            await command.RespondAsync(embed: embed.Build());
+        }
+
         private async Task HandleMessage(SocketMessage message)
         {
             // Ignore messages from the bot itself
@@ -183,7 +411,7 @@ namespace FishingTalk
 
             SocketGuild guild = context.Guild;
             var author = guild.GetUser(message.Author.Id);
-            string authorUsername = author?.Nickname ?? author.GlobalName;
+            string authorUsername = author?.Nickname ?? author.GlobalName ?? author.DisplayName;
 
             // Make it get token from token.txt via some method
             // also regenerate webhook url and do the same (it's compromised)

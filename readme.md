@@ -20,6 +20,7 @@ We welcome contributions! Feel free to open issues or submit pull requests.
 - Fill in fishingtalk.json with a discord bot token and a webhook for your discord channel!
 - If all is done properly, everything should work. Contact us below if there are any issues.
 - IMPORTANT: Remember to set the "Message Content Intent" priviledged intent for the bot in the Discord Development Portal.
+- Make sure to select both the "bot" and "applications.commands" scopes in the Oauth2 Generator!
 
 ## Support
 Need help? Join our [Discord Community](https://discord.gg/7PQUdNJVhD) or open an issue!
