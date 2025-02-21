@@ -225,23 +225,13 @@ namespace FishingTalk
 
         private async Task ListUsers(SocketSlashCommand command)
         {
-            int argsPageNumber;
-            try
-            {
-                argsPageNumber = (int)command.Data.Options.First().Value;
-            }
-            catch
-            {
-                argsPageNumber = 1;
-            }
+            int pageNumber = (int)(long)command.Data.Options.First().Value;
             
             // this chunk is stolen directly from Dr.Meepso's Cove.ChatCommands. I'm sorry!
             
-            int pageNumber = 1;
-            int pageSize = 10;
-            // Check if a page number was provided
+            int pageSize = 1;
             
-            if(argsPageNumber != 1) pageNumber = argsPageNumber; 
+            //if(argsPageNumber != 1) pageNumber = argsPageNumber; 
 
             var allPlayers = _plugin.GetAllPlayers();
             int totalPlayers = allPlayers.Length;
