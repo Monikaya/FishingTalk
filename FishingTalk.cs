@@ -85,7 +85,7 @@ namespace FishingTalk
 
         public override void onChatMessage(WFPlayer sender, string message)
         {
-            base.onChatMessage(sender, message);
+            base.onChatMessage(sender, message); 
             sendDiscordWebhook(talkConfig.WebhookURL, talkConfig.IconURL, sender.Username, message);
         }
 
@@ -109,16 +109,28 @@ namespace FishingTalk
             sendDiscordWebhook(talkConfig.WebhookURL, talkConfig.IconURL, "Server", message);
         }
 
-        public static void sendDiscordWebhook(string URL, string profilepic, string username, string message)
+        public static async void sendDiscordWebhook(string URL, string profilepic, string username, string message)
         {
             if(message.Contains("@everyone")) message = "I tried to ateveryone! This message was replaced.";
             if(message.Contains("@here")) message = "I tried to athere! This message was replaced.";
 
-            NameValueCollection discordValues = new NameValueCollection();
-            discordValues.Add("username", username);
-            discordValues.Add("avatar_url", profilepic);
-            discordValues.Add("content", message);
-            new WebClient().UploadValues(URL, discordValues);
+            using var client = new HttpClient();
+            var content = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                { "username", username },
+                { "avatar_url", profilepic },
+                { "content", message }
+            });
+
+            await client.PostAsync(URL, content);
+
+            /*NameValueCollection discordValues = new NameValueCollection
+            {
+                { "username", username },
+                { "avatar_url", profilepic },
+                { "content", message }
+            };
+            new WebClient().UploadValues(URL, discordValues);*/
         }
 
         public void SendWebfishMessage(string username, string message)
@@ -225,11 +237,19 @@ namespace FishingTalk
 
         private async Task ListUsers(SocketSlashCommand command)
         {
-            int pageNumber = (int)(long)command.Data.Options.First().Value;
+            int pageNumber;
+            try
+            {
+                pageNumber = (int)(long)command.Data.Options.First().Value;
+            }
+            catch
+            {
+                pageNumber = 1;
+            }
             
             // this chunk is stolen directly from Dr.Meepso's Cove.ChatCommands. I'm sorry!
             
-            int pageSize = 1;
+            int pageSize = 10;
             
             //if(argsPageNumber != 1) pageNumber = argsPageNumber; 
 
