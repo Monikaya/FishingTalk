@@ -218,12 +218,18 @@ namespace FishingTalk
             var killCommand = new SlashCommandBuilder()
                 .WithName("kill")
                 .WithDescription("Kill and restart the server. pm2 only supported.");
+            var unbanCommand = new SlashCommandBuilder()
+                .WithName("unban")
+                .WithDescription("Unban someone from the server by username or Steam ID")
+                .AddOption("user-id", ApplicationCommandOptionType.String, "The Steam ID to unban", isRequired: false)
+                .AddOption("username", ApplicationCommandOptionType.String, "The username to unban", isRequired: false);
 
             await _client.CreateGlobalApplicationCommandAsync(usersCommand.Build());
             await _client.CreateGlobalApplicationCommandAsync(kickCommand.Build());
             await _client.CreateGlobalApplicationCommandAsync(banCommand.Build());
             await _client.CreateGlobalApplicationCommandAsync(banIDCommand.Build());
             await _client.CreateGlobalApplicationCommandAsync(killCommand.Build());
+            await _client.CreateGlobalApplicationCommandAsync(unbanCommand.Build());
         }
 
         private async Task SlashCommandHandler(SocketSlashCommand command)
@@ -244,6 +250,9 @@ namespace FishingTalk
                     break;
                 case "kill":
                     await KillServer(command);
+                    break;
+                case "unban":
+                    await UnbanUser(command);
                     break;
             }
         }
@@ -298,7 +307,7 @@ namespace FishingTalk
                 var embed = new EmbedBuilder()
                     .WithTitle("Not Allowed")
                     .WithColor(Color.Red)
-                    .WithDescription("You don't have the permissison to access this command");
+                    .WithDescription("You don't have permissison to access this command");
 
                 await command.RespondAsync(embed: embed.Build());
                 return;
@@ -344,7 +353,7 @@ namespace FishingTalk
                 var embed = new EmbedBuilder()
                     .WithTitle("Not Allowed")
                     .WithColor(Color.Red)
-                    .WithDescription("You don't have the permissison to access this command");
+                    .WithDescription("You don't have permissison to access this command");
 
                 await command.RespondAsync(embed: embed.Build());
                 return;
@@ -390,7 +399,7 @@ namespace FishingTalk
                 var embedPP = new EmbedBuilder()
                     .WithTitle("Not Allowed")
                     .WithColor(Color.Red)
-                    .WithDescription("You don't have the permissison to access this command");
+                    .WithDescription("You don't have permissison to access this command");
 
                 await command.RespondAsync(embed: embedPP.Build());
                 return;
@@ -422,6 +431,31 @@ namespace FishingTalk
             await command.RespondAsync(embed: embed.Build());
         }
 
+        private async Task UnbanUser(SocketSlashCommand command)
+        {
+            SocketGuildUser user = command.User as SocketGuildUser;
+            if (!user.GuildPermissions.BanMembers)
+            {
+                var embedPP = new EmbedBuilder()
+                    .WithTitle("Not Allowed")
+                    .WithColor(Color.Red)
+                    .WithDescription("You don't have permission to access this command");
+                await command.RespondAsync(embed: embedPP.Build());
+                return;
+
+            }
+            string userID = (string)command.Data.Options.First().Value;
+
+            File.WriteAllLines("bans.txt",
+                File.ReadLines("bans.txt").Where(l => l != userID).ToList());
+
+            var embed = new EmbedBuilder()
+                .WithTitle("Done!")
+                .WithColor(Color.Green)
+                .WithDescription("They're probably unbanned! I don't have a way of checking though :)");
+            await command.RespondAsync(embed: embed.Build());
+        }
+
         private async Task KillServer(SocketSlashCommand command)
         {
             SocketGuildUser user = command.User as SocketGuildUser;
@@ -430,7 +464,7 @@ namespace FishingTalk
                 var embedPP = new EmbedBuilder()
                     .WithTitle("Not Allowed")
                     .WithColor(Color.Red)
-                    .WithDescription("You don't have the permissison to access this command");
+                    .WithDescription("You don't have permissison to access this command");
 
                 await command.RespondAsync(embed: embedPP.Build());
                 return;
