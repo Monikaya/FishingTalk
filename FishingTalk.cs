@@ -22,6 +22,7 @@ namespace FishingTalk
         public required string WebhookURL { get; set; }
         public required string WebhookChannelId { get; set; }
         public required string WebhookUserId { get; set; }
+        public static string ModChannelWebhookId { get; set; }
         public string IconURL { get; set; }
     }
 
@@ -111,8 +112,8 @@ namespace FishingTalk
 
         public static async void sendDiscordWebhook(string URL, string profilepic, string username, string message)
         {
-            if(message.Contains("@everyone")) message = "I tried to ateveryone! This message was replaced.";
-            if(message.Contains("@here")) message = "I tried to athere! This message was replaced.";
+            if (message.Contains("@everyone")) message = "I tried to ateveryone! This message was replaced.";
+            if (message.Contains("@here")) message = "I tried to athere! This message was replaced.";
 
             using var client = new HttpClient();
             var content = new FormUrlEncodedContent(new Dictionary<string, string>
@@ -123,6 +124,10 @@ namespace FishingTalk
             });
 
             await client.PostAsync(URL, content);
+            if (TalkConfig.ModChannelWebhookId != null)
+            {
+                await client.PostAsync(TalkConfig.ModChannelWebhookId, content);
+            }
 
             /*NameValueCollection discordValues = new NameValueCollection
             {
