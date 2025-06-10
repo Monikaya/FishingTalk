@@ -447,7 +447,7 @@ namespace FishingTalk
             string userID = (string)command.Data.Options.First().Value;
 
             File.WriteAllLines("bans.txt",
-                File.ReadLines("bans.txt").Where(l => l != userID).ToList());
+                File.ReadLines("bans.txt").Where(l => !l.Contains(userID)).ToList());
 
             var embed = new EmbedBuilder()
                 .WithTitle("Done!")
