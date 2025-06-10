@@ -10,6 +10,7 @@ using System.Collections.Specialized;
 using Newtonsoft.Json;
 using System.Linq.Expressions;
 using Discord.Interactions;
+using System.Diagnostics;
 
 // Change the namespace and class name!
 namespace FishingTalk
@@ -214,16 +215,20 @@ namespace FishingTalk
                 .WithName("banid")
                 .WithDescription("Ban a user by their steam id")
                 .AddOption("user-id", ApplicationCommandOptionType.String, "The steam id to ban", isRequired: true);
-            
+            var killCommand = new SlashCommandBuilder()
+                .WithName("kill")
+                .WithDescription("Kill and restart the server. pm2 only supported.");
+
             await _client.CreateGlobalApplicationCommandAsync(usersCommand.Build());
             await _client.CreateGlobalApplicationCommandAsync(kickCommand.Build());
             await _client.CreateGlobalApplicationCommandAsync(banCommand.Build());
             await _client.CreateGlobalApplicationCommandAsync(banIDCommand.Build());
+            await _client.CreateGlobalApplicationCommandAsync(killCommand.Build());
         }
 
         private async Task SlashCommandHandler(SocketSlashCommand command)
         {
-            switch(command.Data.Name)
+            switch (command.Data.Name)
             {
                 case "users":
                     await ListUsers(command);
@@ -236,6 +241,9 @@ namespace FishingTalk
                     break;
                 case "banid":
                     await BanUserByID(command);
+                    break;
+                case "kill":
+                    await KillServer(command);
                     break;
             }
         }
@@ -412,6 +420,28 @@ namespace FishingTalk
                 .WithDescription("Sucessfully banned " + playerID);
             
             await command.RespondAsync(embed: embed.Build());
+        }
+
+        private async Task KillServer(SocketSlashCommand command)
+        {
+            SocketGuildUser user = command.User as SocketGuildUser;
+            if (!user.GuildPermissions.BanMembers)
+            {
+                var embedPP = new EmbedBuilder()
+                    .WithTitle("Not Allowed")
+                    .WithColor(Color.Red)
+                    .WithDescription("You don't have the permissison to access this command");
+
+                await command.RespondAsync(embed: embedPP.Build());
+                return;
+            }
+            var embed = new EmbedBuilder()
+                .WithTitle("Doing it!")
+                .WithColor(Color.Green)
+                .WithDescription("Trying to restart!");
+
+            await command.RespondAsync(embed: embed.Build());
+            Process.Start("/bin/bash", "-c 'pm2 restart 0'");
         }
 
         private async Task HandleMessage(SocketMessage message)
