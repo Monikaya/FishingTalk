@@ -23,7 +23,7 @@ namespace FishingTalk
         public required string WebhookURL { get; set; }
         public required string WebhookChannelId { get; set; }
         public required string WebhookUserId { get; set; }
-        public static string ModChannelWebhookId { get; set; }
+        public static string ModChannelWebhookURL { get; set; }
         public string IconURL { get; set; }
     }
 
@@ -125,9 +125,9 @@ namespace FishingTalk
             });
 
             await client.PostAsync(URL, content);
-            if (TalkConfig.ModChannelWebhookId != null)
+            if (TalkConfig.ModChannelWebhookURL != null)
             {
-                await client.PostAsync(TalkConfig.ModChannelWebhookId, content);
+                await client.PostAsync(TalkConfig.ModChannelWebhookURL, content);
             }
 
             /*NameValueCollection discordValues = new NameValueCollection
