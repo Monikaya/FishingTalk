@@ -23,7 +23,7 @@ namespace FishingTalk
         public required string WebhookURL { get; set; }
         public required string WebhookChannelId { get; set; }
         public required string WebhookUserId { get; set; }
-        public static string ModChannelWebhookURL { get; set; }
+        public string ModChannelWebhookURL { get; set; }
         public string IconURL { get; set; }
     }
 
@@ -87,8 +87,8 @@ namespace FishingTalk
 
         public override void onChatMessage(WFPlayer sender, string message)
         {
-            base.onChatMessage(sender, message); 
-            sendDiscordWebhook(talkConfig.WebhookURL, talkConfig.IconURL, sender.Username, message);
+            base.onChatMessage(sender, message);
+            sendDiscordWebhook(talkConfig.WebhookURL, talkConfig.IconURL, sender.Username, message, talkConfig.ModChannelWebhookURL ?? "");
         }
 
         public override void onPlayerJoin(WFPlayer player)
@@ -111,7 +111,7 @@ namespace FishingTalk
             sendDiscordWebhook(talkConfig.WebhookURL, talkConfig.IconURL, "Server", message);
         }
 
-        public static async void sendDiscordWebhook(string URL, string profilepic, string username, string message)
+        public static async void sendDiscordWebhook(string URL, string profilepic, string username, string message, string modchannelwebhook = "")
         {
             if (message.Contains("@everyone")) message = "I tried to ateveryone! This message was replaced.";
             if (message.Contains("@here")) message = "I tried to athere! This message was replaced.";
@@ -125,9 +125,9 @@ namespace FishingTalk
             });
 
             await client.PostAsync(URL, content);
-            if (TalkConfig.ModChannelWebhookURL != null)
+            if (!modchannelwebhook.Equals(""))
             {
-                await client.PostAsync(TalkConfig.ModChannelWebhookURL, content);
+                await client.PostAsync(modchannelwebhook, content);
             }
 
             /*NameValueCollection discordValues = new NameValueCollection
